@@ -1,22 +1,32 @@
 [
     {
+        "name": "Prayer Potion",
         "herb": "Ranarr weed",
         "ingredient": "Snape grass",
         "product": "Prayer potion(3)"
     },
     {
+        "name": "Super Strength",
         "herb": "Kwuarm",
         "ingredient": "Limpwurt root",
         "product": "Super strength(3)"
     },
     {
+        "name": "Super Defence",
         "herb": "Cadantine",
         "ingredient": "White berries",
         "product": "Super defence(3)"
     },
     {
+        "name": "Superantipoison",
         "herb": "Irit leaf",
         "ingredient": "Unicorn horn dust",
         "product": "Superantipoison(3)"
+    },
+    {
+        "name": "Attack Potion",
+        "herb": "Guam leaf",
+        "ingredient": "Eye of newt",
+        "product": "Attack potion(3)"
     }
 ]

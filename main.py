@@ -1,4 +1,5 @@
 import json
+import math
 
 from DB import DB
 
@@ -6,7 +7,13 @@ objects = "data/Objects_87.json"
 potion_data = "data/potions.json"
 
 
+
+
+
+
+
 def eval_recipe(potion):
+
     herb = potion['herb']
     grimy_herb = f"Grimy {herb.lower()}"
     ingredient = potion['ingredient']
@@ -15,23 +22,39 @@ def eval_recipe(potion):
 
     prices = {
         "herbs": {
-            herb: item_db.get_stored_price(herb),
-            grimy_herb: item_db.get_stored_price(grimy_herb)
+            "clean": {
+                "name": herb,
+                "price": item_db.get_price(herb)
+            },
+            "grimy": {
+                "name": grimy_herb,
+                "price": item_db.get_price(grimy_herb)
+            }
         },
         "ingredients": {
-            ingredient: item_db.get_stored_price(ingredient)
+            ingredient: item_db.get_price(ingredient)
         },
         "products": {
-            result_3: item_db.get_stored_price(result_3),
-            result_4: item_db.get_stored_price(result_4)
+            result_3: item_db.get_price(result_3),
+            result_4: item_db.get_price(result_4)
         }
     }
 
-    print(json.dumps(prices, indent=2))
-    return prices
+    ingredient_ppd_grimy = math.ceil((item_db.get_price(grimy_herb) + item_db.get_price(ingredient)) / 3)
+    ingredient_ppd_clean = math.ceil((item_db.get_price(herb) + item_db.get_price(ingredient)) / 3)
+    price_per_dose = min(ingredient_ppd_grimy, ingredient_ppd_clean)
 
-def eval_margins(potion):
-    pass
+    margins = {
+        "name": potion['name'],
+        "min_price_per_dose": price_per_dose,
+        "Price(3)": item_db.get_price(result_3),
+        "Price(4)": item_db.get_price(result_4),
+        "profit(3)": item_db.get_price(result_3) - math.ceil(price_per_dose * 3),
+        "profit(4)": item_db.get_price(result_4) - math.ceil(price_per_dose * 4)
+    }
+
+    return prices, margins
+
 
 
 if __name__ == '__main__':
@@ -42,4 +65,6 @@ if __name__ == '__main__':
     item_db.init_table(objects)
 
     for potion in potions:
-        eval_recipe(potion)
+        recipe, margin = eval_recipe(potion)
+        print(json.dumps(margin, indent=1))
+

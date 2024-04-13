@@ -43,11 +43,13 @@ class DB:
 
     @dispatch(int)
     def update_price(self, id) -> int:
+
         new_price = self.fetch_price(id)
+
         self.cursor.execute(f"""
-            UPDATE items SET price = {new_price} WHERE id = '{id}'
+            UPDATE items SET price = {new_price}, touched = {int(time.time())} WHERE id = '{id}'
         """
-                            )
+        )
         self.conn.commit()
         return new_price
 
@@ -57,7 +59,7 @@ class DB:
         return self.update_price(self.get_id(item))
 
     @dispatch(int)
-    def get_stored_price(self, item_id: int):
+    def get_price(self, item_id: int):
         """Gets price for the provided item ID from the database if column is younger than refresh interval,
         updates the price from the osrs API if older than refresh
         """
@@ -66,20 +68,19 @@ class DB:
 
         price, touched = self.cursor.fetchone()
 
-        if int(time.time()) - touched > self.UPDATE_INTERVAL or price == 0:
+        if (int(time.time()) - touched) > self.UPDATE_INTERVAL or price == 0:
             price = self.update_price(item_id)
 
         return price
 
     @dispatch(str)
-    def get_stored_price(self, name: str):
+    def get_price(self, name: str):
         """Gets price for the provided item name"""
-        return self.get_stored_price(self.get_id(name))
+        return self.get_price(self.get_id(name))
 
     @dispatch(int)
     def fetch_price(self, item_id: int):
         """Updates the price of an item in the database"""
-
         req = requests.get(f"{self.BASE_URL}?item={item_id}")
 
         price = req.json()['item']['current']['price']
