@@ -1,23 +1,12 @@
-import sqlite3
 import json
-from html import escape
-
-import requests
 
 from DB import DB
-
 
 objects = "data/Objects_87.json"
 potion_data = "data/potions.json"
 
-import time
-
-
-
-
 
 def eval_recipe(potion):
-
     herb = potion['herb']
     grimy_herb = f"Grimy {herb.lower()}"
     ingredient = potion['ingredient']
@@ -41,6 +30,8 @@ def eval_recipe(potion):
     print(json.dumps(prices, indent=2))
     return prices
 
+def eval_margins(potion):
+    pass
 
 
 if __name__ == '__main__':
@@ -52,4 +43,3 @@ if __name__ == '__main__':
 
     for potion in potions:
         eval_recipe(potion)
-
