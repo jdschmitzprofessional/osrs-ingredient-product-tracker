@@ -1,7 +1,7 @@
 import json
 import math
 
-from DB import DB
+from sqlite_db import SQLite_DB
 
 objects = "data/Objects_87.json"
 potion_data = "data/potions.json"
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     with open(potion_data, 'r') as infile:
         potions = json.loads(infile.read())
 
-    item_db = DB("data/items.db")
+    item_db = SQLite_DB("data/items.db")
     item_db.init_table(objects)
 
     for potion in potions:
