@@ -6,12 +6,6 @@ from sqlite_db import SQLite_DB
 objects = "data/Objects_87.json"
 potion_data = "data/potions.json"
 
-
-
-
-
-
-
 def eval_recipe(potion):
 
     herb = potion['herb']
@@ -63,7 +57,7 @@ if __name__ == '__main__':
 
     item_db = SQLite_DB("data/items.db")
     item_db.init_table(objects)
-
+    item_db.get_price("Abyssal whip")
     for potion in potions:
         recipe, margin = eval_recipe(potion)
         print(json.dumps(margin, indent=1))

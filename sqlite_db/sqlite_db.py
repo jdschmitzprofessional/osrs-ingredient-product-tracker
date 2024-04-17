@@ -10,7 +10,7 @@ from multipledispatch import dispatch
 class SQLite_DB:
     """Wraps sqlite calls for ease and readability"""
     BASE_URL = "http://services.runescape.com/m=itemdb_oldschool/api/catalogue/detail.json"
-    UPDATE_INTERVAL = 600
+    UPDATE_INTERVAL = 6
 
     def __init__(self, db_file):
         self.conn = sqlite3.connect(db_file)
@@ -53,10 +53,7 @@ class SQLite_DB:
         self.conn.commit()
         return new_price
 
-    @dispatch(str)
-    def update_price(self, item: str):
-        """Overload str -> int"""
-        return self.update_price(self.get_id(item))
+
 
     @dispatch(int)
     def get_price(self, item_id: int):
@@ -73,19 +70,49 @@ class SQLite_DB:
 
         return price
 
-    @dispatch(str)
-    def get_price(self, name: str):
-        """Gets price for the provided item name"""
-        return self.get_price(self.get_id(name))
+
 
     @dispatch(int)
     def fetch_price(self, item_id: int):
         """Updates the price of an item in the database"""
         req = requests.get(f"{self.BASE_URL}?item={item_id}")
 
-        price = req.json()['item']['current']['price']
-
-        if type(price) != int:
-            price = int(price.replace(",", ""))
+        price = self.standardize_price(req.json()['item']['current']['price'])
 
         return price
+
+    @dispatch(str)
+    def standardize_price(self, price: str) -> int:
+        """Standardizes prices into an integer from the approximate price given by the osrs ge api"""
+        if "." in price:
+
+            if price.endswith("m"):
+                factor = 1000000
+                price = float(price.replace("m", ""))
+
+            elif price.endswith("k"):
+                factor = 1000
+                price = float(price.replace("k", ""))
+
+            final_int = int(price * factor)
+            return final_int
+
+        return int(price.replace(",",""))
+
+
+### Overloads ###
+
+    @dispatch(int)
+    def standardize_price(self, price: int):
+        "Int prices do not need to be modified"
+        return price
+
+    @dispatch(str)
+    def get_price(self, name: str):
+        """Gets price for the provided item name"""
+        return self.get_price(self.get_id(name))
+
+    @dispatch(str)
+    def update_price(self, item: str):
+        """Overload str -> int"""
+        return self.update_price(self.get_id(item))
