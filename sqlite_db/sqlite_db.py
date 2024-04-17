@@ -10,7 +10,7 @@ from multipledispatch import dispatch
 class SQLite_DB:
     """Wraps sqlite calls for ease and readability"""
     BASE_URL = "http://services.runescape.com/m=itemdb_oldschool/api/catalogue/detail.json"
-    UPDATE_INTERVAL = 6
+    UPDATE_INTERVAL = 600
 
     def __init__(self, db_file):
         self.conn = sqlite3.connect(db_file)
