@@ -24,6 +24,7 @@ class Exporter:
         self.poll_interval = self.DEFAULT_POLL_INTERVAL_SECONDS
 
         self.db = SQLite_DB("data/items.db")
+        self.db.init_table()
         if port:
             self.prom_port = port
         if polling_interval_seconds:
