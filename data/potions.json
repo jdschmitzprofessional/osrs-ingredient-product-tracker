@@ -28,5 +28,17 @@
         "herb": "Guam leaf",
         "ingredient": "Eye of newt",
         "product": "Attack potion(3)"
+    },
+    {
+        "name": "Super Energy",
+        "herb": "Avantoe",
+        "ingredient": "Mort myre fungus",
+        "product": "Super energy(3)"
+    },
+    {
+        "name": "Super Restore",
+        "herb": "Snapdragon",
+        "ingredient": "Red spiders' eggs",
+        "product": "Super restore(3)"
     }
 ]

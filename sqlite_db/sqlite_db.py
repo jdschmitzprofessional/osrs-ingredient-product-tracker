@@ -21,6 +21,7 @@ class SQLite_DB:
             CREATE TABLE IF NOT EXISTS ITEMS( id INTEGER, name TEXT, price INTEGER, touched INTEGER,
             CONSTRAINT unique_column UNIQUE (id) )
             """)
+
         with open(item_data, 'r') as infile:
             item_data_init = json.loads(infile.read())
         for item in item_data_init:

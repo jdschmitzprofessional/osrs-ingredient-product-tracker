@@ -1,64 +1,71 @@
-import json
-import math
-
 from sqlite_db import SQLite_DB
 
-objects = "data/Objects_87.json"
-potion_data = "data/potions.json"
+import time
+import json
+from prometheus_client import start_http_server, Gauge
 
-def eval_recipe(potion):
 
-    herb = potion['herb']
-    grimy_herb = f"Grimy {herb.lower()}"
-    ingredient = potion['ingredient']
-    result_3 = potion['product']
-    result_4 = result_3.replace("3", "4")
 
-    prices = {
-        "herbs": {
-            "clean": {
-                "name": herb,
-                "price": item_db.get_price(herb)
-            },
-            "grimy": {
-                "name": grimy_herb,
-                "price": item_db.get_price(grimy_herb)
-            }
-        },
-        "ingredients": {
-            ingredient: item_db.get_price(ingredient)
-        },
-        "products": {
-            result_3: item_db.get_price(result_3),
-            result_4: item_db.get_price(result_4)
-        }
-    }
 
-    ingredient_ppd_grimy = math.ceil((item_db.get_price(grimy_herb) + item_db.get_price(ingredient)) / 3)
-    ingredient_ppd_clean = math.ceil((item_db.get_price(herb) + item_db.get_price(ingredient)) / 3)
-    price_per_dose = min(ingredient_ppd_grimy, ingredient_ppd_clean)
 
-    margins = {
-        "name": potion['name'],
-        "min_price_per_dose": price_per_dose,
-        "Price(3)": item_db.get_price(result_3),
-        "Price(4)": item_db.get_price(result_4),
-        "profit(3)": item_db.get_price(result_3) - math.ceil(price_per_dose * 3),
-        "profit(4)": item_db.get_price(result_4) - math.ceil(price_per_dose * 4)
-    }
+class Exporter:
 
-    return prices, margins
+    DEFAULT_PORT = 80
+    DEFAULT_POLL_INTERVAL_SECONDS = 300
+    ILLEGAL_CHARACTERS = [
+        "(",
+        ")",
+        " ",
+        "'"
+    ]
 
+    def __init__(self, port = None, polling_interval_seconds = None, items: list = []):
+        self.prom_port = self.DEFAULT_PORT
+        self.poll_interval = self.DEFAULT_POLL_INTERVAL_SECONDS
+
+        self.db = SQLite_DB("data/items.db")
+        if port:
+            self.prom_port = port
+        if polling_interval_seconds:
+            self.poll_interval = polling_interval_seconds
+        self.items = {}
+        for item in items:
+            self.items[item] = Gauge(self.scrub_item_name(item), f"{item} price")
+
+
+    def scrub_item_name(self, item):
+        scrubbed_item = item.lower()
+
+        for char in self.ILLEGAL_CHARACTERS:
+            scrubbed_item = scrubbed_item.replace(char, "_")
+
+        if scrubbed_item.endswith("_"):
+            scrubbed_item = scrubbed_item[:-1]
+        return scrubbed_item
+
+    def refresh_cycle(self):
+        while True:
+            self.fetch()
+            time.sleep(self.poll_interval)
+
+    def fetch(self):
+        for item, gauge in self.items.items():
+            gauge.set(self.db.get_price(item))
+
+    def start_server(self):
+        start_http_server(addr="0.0.0.0", port=self.prom_port)
 
 
 if __name__ == '__main__':
-    with open(potion_data, 'r') as infile:
-        potions = json.loads(infile.read())
+    print("Load items")
+    with open("data/items.json", "r") as infile:
+        items = json.loads(infile.read())
 
-    item_db = SQLite_DB("data/items.db")
-    item_db.init_table(objects)
-    item_db.get_price("Abyssal whip")
-    for potion in potions:
-        recipe, margin = eval_recipe(potion)
-        print(json.dumps(margin, indent=1))
+    print("Instantiate class")
+    exporter = Exporter(items=items)
 
+    print("Start exporter")
+    exporter.start_server()
+
+    print("Start refresh loop")
+    exporter.refresh_cycle()
