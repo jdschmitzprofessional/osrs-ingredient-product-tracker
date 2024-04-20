@@ -1,6 +1,7 @@
 import json
 import sqlite3
 import time
+import os
 from html import escape
 
 import requests
@@ -11,19 +12,20 @@ class SQLite_DB:
     """Wraps sqlite calls for ease and readability"""
     BASE_URL = "http://services.runescape.com/m=itemdb_oldschool/api/catalogue/detail.json"
     UPDATE_INTERVAL = 600
-
+    ITEMS_DATA = "data/Objects_87.json"
+    CWD = os.getcwd()
     def __init__(self, db_file):
         self.conn = sqlite3.connect(db_file)
         self.cursor = self.conn.cursor()
 
-    def init_table(self, item_data: dict) -> None:
+    def init_table(self, item_data) -> None:
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS ITEMS( id INTEGER, name TEXT, price INTEGER, touched INTEGER,
             CONSTRAINT unique_column UNIQUE (id) )
             """)
 
         with open(item_data, 'r') as infile:
-            item_data_init = json.loads(infile.read())
+            item_data_init = json.loads(infile.read(self.ITEMS_DATA))
         for item in item_data_init:
             self.conn.execute(f"""
                     INSERT OR IGNORE INTO items VALUES('{item['id']}', '{escape(item['name'], quote=True)}', 
