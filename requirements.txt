@@ -1,2 +1,0 @@
-multipledispatch==1.0.0
-prometheus_client==0.20.0
